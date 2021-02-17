@@ -1,10 +1,15 @@
 #!/Users/ko/miniconda3/bin/python3
 # modify shebang with your python executable
 import argparse
+import datetime
+import time
 from typing import Optional
 
 import requests
 from bs4 import BeautifulSoup
+
+
+SLEEP_TIME = 0.5
 
 
 def hackernews_scrap(date: Optional[str] = None):
@@ -49,5 +54,23 @@ if __name__ == "__main__":
         type=date_t,
         help="Date to scrap in format: YYMMDD",
     )
+
+    parser.add_argument("--date_from", default=None, type=date_t)
+    parser.add_argument("--date_to", default=None, type=date_t)
     args = parser.parse_args()
-    hackernews_scrap(date=args.date)
+    if args.date_from or args.date_to:
+        assert args.date_from and args.date_to
+
+    if args.date_from:
+        import numpy as np
+        d_from = datetime.datetime.strptime(args.date_from, "%y%m%d")
+        d_to = datetime.datetime.strptime(args.date_to, "%y%m%d")
+        assert d_to > d_from, "Check dates"
+        days = np.arange(d_from, d_to, datetime.timedelta(days=1)).astype(datetime.datetime)
+        days = [d.strftime("%y%m%d") for d in days]
+        for d in days:
+            print(f"DATE: {d}")
+            hackernews_scrap(date=d)
+            time.sleep(SLEEP_TIME)
+    else:
+        hackernews_scrap(date=args.date)
