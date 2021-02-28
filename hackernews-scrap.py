@@ -2,19 +2,19 @@
 # modify shebang with your python executable
 import argparse
 import datetime
+import random
 import time
 from typing import Optional
 
 import requests
 from bs4 import BeautifulSoup
 from sqlalchemy import Column, Date, Integer, Text, create_engine
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.session import Session
-from sqlalchemy.exc import IntegrityError
 
-
-SLEEP_TIME = 0.5
+SLEEP_TIME = 0.2
 
 Base = declarative_base()
 
@@ -78,7 +78,7 @@ def hackernews_scrap(date: Optional[str] = None, session: Optional[Session] = No
         try:
             session.add_all(processed_data)
             session.commit()
-        except IntegrityError as e:  # UNIQUE constraint failed: -> Values are already added
+        except IntegrityError:  # UNIQUE constraint failed: -> Values are already added
             pass
 
     return
@@ -118,6 +118,6 @@ if __name__ == "__main__":
         for d in days:
             print(f"DATE: {d}")
             hackernews_scrap(date=d, **hackernews_scrap_kwargs)
-            time.sleep(SLEEP_TIME)
+            time.sleep(SLEEP_TIME * (random.random() + 1))
     else:
         hackernews_scrap(date=args.date, **hackernews_scrap_kwargs)
